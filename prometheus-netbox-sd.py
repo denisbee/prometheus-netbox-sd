@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # vim: set ts=4 sw=4 sts=4 et ai:
 
-from io import TextIOBase
 import os, json, argparse, itertools, filecmp, re, urllib.parse, glob
 from typing import Any, Dict, Generator, Union, Literal, List, Tuple, Set
+from io import TextIOBase
 
 import pynetbox, netaddr
 from pynetbox.core.response import Record
@@ -82,7 +82,7 @@ def gen_prom_targets_for_record(record: Record) -> Generator[Tuple[ListName, Pro
                         yield name, result
         except AssertionError:
             print(f'Record "{record}" ({record.primary_ip}) skipped '
-                'due errors in format of prom_targets or prom_labels fields in rendered configcontext')
+                'due to errors in format of prom_targets or prom_labels fields in rendered configcontext')
 
 def gen_prom_targets(url: str, token: str) -> Generator[Tuple[ListName, PromTarget], None, None]:
     netbox = pynetbox.api(url, token=token)
