@@ -7,8 +7,6 @@ from io import TextIOBase
 
 import pynetbox, netaddr
 from pynetbox.core.response import Record
-from pynetbox.models.dcim import Devices
-from pynetbox.models.virtualization import VirtualMachines
 
 ListName = str
 HostStr = str
@@ -57,10 +55,11 @@ def gen_prom_targets_for_record(record: Record) -> Generator[Tuple[ListName, Pro
                 urllib.parse.quote(f'_devices_tag_{tag}', safe=''): {}
                 for tag in getattr(record, 'tags', [])
             }
-            prom_targets.update(record.config_context.get('prom_targets', {}))
-            assert isinstance(prom_targets, Dict)
+            prom_targets.update({
+                urllib.parse.quote(k, safe=''): v
+                for k, v in record.config_context.get('prom_targets', {}).items()
+            })
             for name, target in prom_targets.items():
-                assert isinstance(name, str)
                 if target != False:
                     assert isinstance(target, Dict)
                     result = {
@@ -81,8 +80,8 @@ def gen_prom_targets_for_record(record: Record) -> Generator[Tuple[ListName, Pro
                             del result['labels'] 
                         yield name, result
         except AssertionError:
-            print(f'Record "{record}" ({record.primary_ip}) skipped '
-                'due to errors in format of prom_targets or prom_labels fields in rendered configcontext')
+            print(f'Record "{record}" ({record.primary_ip}) ignored '
+                'due to errors in prom_targets or prom_labels field of configcontext')
 
 def gen_prom_targets(url: str, token: str) -> Generator[Tuple[ListName, PromTarget], None, None]:
     netbox = pynetbox.api(url, token=token)
