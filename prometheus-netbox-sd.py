@@ -14,7 +14,6 @@ ListName = str
 HostStr = str
 LabelName = str
 LabelValue = str
-
 PromTarget = Dict[
     Union[
         Literal['targets'],
@@ -28,18 +27,6 @@ PromTarget = Dict[
         ]
     ]
 ]
-
-def writer(filename: str) -> Generator[None, PromTarget, None]:
-    temp_file = f'{filename}.tmp'
-    output = open(temp_file, "w")
-    output.write('[\n')
-    while True:
-        rec = yield
-        if not rec:
-            break
-        json.dump(rec, output, indent=4)
-        output.write("\n")
-    output.write(']\n')
 
 notcomplete = re.compile(r'^\s*(?P<scheme>https?://)?\s*(?P<port>:\d{1,5})?\s*$')
 
