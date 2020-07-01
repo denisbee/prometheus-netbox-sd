@@ -5,4 +5,4 @@ RUN apk add --no-cache gcc git libev-dev musl-dev libffi-dev libressl-dev make l
     pip install -r requirements.txt && \
     apk del --no-cache git gcc libev-dev musl-dev libffi-dev libressl-dev make
 COPY prometheus-netbox-sd.py /srv/
-ENTRYPOINT ["/usr/local/bin/python3", "/srv/prometheus-netbox-sd.py" ]
+ENTRYPOINT [ "/usr/local/bin/python3", "/srv/prometheus-netbox-sd.py" ]
