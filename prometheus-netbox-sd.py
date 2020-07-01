@@ -7,7 +7,7 @@ from io import TextIOBase
 import pynetbox, netaddr, bjoern
 from pynetbox.core.response import Record
 
-# file name component of prometheus target groups file ({args.direcotory}/{ListName}.json)
+# file name component of prometheus sd target file ({args.directory}/netbox_{ListName}.json)
 # https://prometheus.io/docs/prometheus/latest/configuration/configuration/#file_sd_config
 ListName = str
 
