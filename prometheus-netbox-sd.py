@@ -56,7 +56,7 @@ class backoff_function:
 
 backoff = backoff_function()
 
-def gen_prom_targets_for_record(record: Record) -> Generator[Tuple[ListName, StaticConfig], None, None]:
+def gen_prom_targets_for_record(record: Record, region: Record) -> Generator[Tuple[ListName, StaticConfig], None, None]:
     """Generates tuples (`ListName`, `StaticConfig`) for specified NetBox record
     if it contains primary IP address.
 
@@ -77,18 +77,11 @@ def gen_prom_targets_for_record(record: Record) -> Generator[Tuple[ListName, Sta
                     labels[f'__meta_netbox_{lab}'] = str(val)
             setlabel("name", getattr(record, 'name', repr(record)))
             setlabel("site_name", getattr(getattr(record, 'site', {}), 'name', None))
+            setlabel("region_name", getattr(region, 'name', None))
+            setlabel("region_slug", getattr(region, 'slug', None))
             setlabel("site_slug", getattr(getattr(record, 'site', {}), 'slug', None))
             setlabel("device_type_model", getattr(getattr(record, 'device_type', {}), 'model', None))
-            setlabel("device_type",
-                getattr(
-                    getattr(
-                        getattr(record, 'device_type', {}),
-                        'manufacturer',
-                        {}
-                    ),
-                    'name',
-                    ''
-                ) + ' ' + getattr(getattr(record, 'device_type', {}), 'model', ''))
+            setlabel("device_type", getattr(getattr(record, 'device_type', {}), 'display_name', None))
             
             # automatically add target list for every record's tag. List name urlencoded for the sake of
             # rough directory traversal protection (used as file path component later)
@@ -137,10 +130,11 @@ def gen_prom_targets(url: str, token: str) -> Generator[Tuple[ListName, StaticCo
     rendered Config Context of NetBox record.
     """
     netbox = pynetbox.api(url, token=token)
+    sites: Dict[int, Record] = {site.id: site.region for site in netbox.dcim.sites.all()}
     devices: List[Record] = netbox.dcim.devices.filter(has_primary_ip=True)
     vm: List[Record] = netbox.virtualization.virtual_machines.filter(has_primary_ip=True)
     for record in itertools.chain(devices, vm):
-        yield from gen_prom_targets_for_record(record)
+        yield from gen_prom_targets_for_record(record, sites[record.site.id])
 
 def update_loop(url: str, token: str, directory: str, periodic: float):
     while True:
